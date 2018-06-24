@@ -96,11 +96,10 @@ public final class InvocationStubManager {
 
 	public void init() throws Throwable {
 		if (isInit()) {
-			throw new IllegalStateException("InvocationStubManager Has been initialized.");
+			throw new IllegalStateException("InvocationStubManager has been initialized.");
 		}
 		injectInternal();
 		sInit = true;
-
 	}
 
 	private void injectInternal() throws Throwable {

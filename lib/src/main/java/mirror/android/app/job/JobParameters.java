@@ -22,6 +22,4 @@ public class JobParameters {
     public static RefObject<IBinder> callback;
     public static RefObject<PersistableBundle> extras;
     public static RefInt jobId;
-
-
 }

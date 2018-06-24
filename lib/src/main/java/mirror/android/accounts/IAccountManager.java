@@ -7,6 +7,10 @@ import mirror.RefClass;
 import mirror.MethodParams;
 import mirror.RefStaticMethod;
 
+/**
+ * liujia: 对应系统的 core/java/android/accounts/IAccountManager.aidl
+ */
+
 public class IAccountManager {
     public static Class<?> TYPE = RefClass.load(IAccountManager.class, "android.accounts.IAccountManager");
 

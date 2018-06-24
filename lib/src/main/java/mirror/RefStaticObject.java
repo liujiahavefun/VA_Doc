@@ -2,6 +2,11 @@ package mirror;
 
 import java.lang.reflect.Field;
 
+/**
+ * liujia: 与RefObject类似，不过this.field.get()传null，表明获取的是类的静态成员
+ *
+ */
+
 @SuppressWarnings("unchecked")
 public class RefStaticObject<T> {
     private Field field;

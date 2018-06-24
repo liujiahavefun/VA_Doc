@@ -7,6 +7,10 @@ import mirror.RefClass;
 import mirror.MethodParams;
 import mirror.RefStaticMethod;
 
+/**
+ * liujia: 对应 core/java/android/app/backup/IBackupManager.aidl
+ */
+
 public class IBackupManager {
     public static Class<?> TYPE = RefClass.load(IBackupManager.class, "android.app.backup.IBackupManager");
 

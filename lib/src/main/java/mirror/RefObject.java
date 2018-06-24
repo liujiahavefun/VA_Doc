@@ -2,6 +2,11 @@ package mirror;
 
 import java.lang.reflect.Field;
 
+/**
+ * liujia: 与RefBoolean类似，不过这个是模板类，对应的Object类型通过模板参数T传进来
+ *
+ */
+
 // Field 映射
 @SuppressWarnings("unchecked")
 public class RefObject<T> {
