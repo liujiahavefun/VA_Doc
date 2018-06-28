@@ -25,6 +25,11 @@ import mirror.android.app.ActivityThread;
 /**
  * @author Lody
  */
+
+/**
+ * liujia: 这个delegate了系统主进程的ActivityThread.currentActivityThread()返回的ActivityThread对象里的mInstrumentation对象
+ * 对此对象hook，可以控制activity application的生命周期
+ */
 public final class AppInstrumentation extends InstrumentationDelegate implements IInjector {
 
     private static final String TAG = AppInstrumentation.class.getSimpleName();
@@ -47,6 +52,10 @@ public final class AppInstrumentation extends InstrumentationDelegate implements
     }
 
     private static AppInstrumentation create() {
+        //liujia: VirtualCore.mainThread()返回的是VirtualCore启动时调的ActivityThread.currentActivityThread()返回的ActivityThread实例
+        //然后，get()返回的instrumentation实际上是此ActivityThread实例里的私有的(但被mirror里的RefObject导出为public了)mInstrumentation对象
+        //注意下面的instanceof判断，在inject()之前，instanceof判断一定不成立，因为返回的对象是Instrumentation类型而不是AppInstrumentation
+        //要new 一个AppInstrumentation对象
         Instrumentation instrumentation = ActivityThread.mInstrumentation.get(VirtualCore.mainThread());
         if (instrumentation instanceof AppInstrumentation) {
             return (AppInstrumentation) instrumentation;
@@ -57,24 +66,29 @@ public final class AppInstrumentation extends InstrumentationDelegate implements
 
     @Override
     public void inject() throws Throwable {
+        //liujia: 获取原来的instrumentation作为base，然后将自己set进去
         base = ActivityThread.mInstrumentation.get(VirtualCore.mainThread());
         ActivityThread.mInstrumentation.set(VirtualCore.mainThread(), this);
     }
 
     @Override
     public boolean isEnvBad() {
+        //liujia: 说明inject没成功....
         return !(ActivityThread.mInstrumentation.get(VirtualCore.mainThread()) instanceof AppInstrumentation);
     }
 
     @Override
     public void callActivityOnCreate(Activity activity, Bundle icicle) {
+        // liujia: afterActivityCreate...
         VirtualCore.get().getComponentDelegate().beforeActivityCreate(activity);
+        // liujia: 调用自己的VActivityManager...
         IBinder token = mirror.android.app.Activity.mToken.get(activity);
         ActivityClientRecord r = VActivityManager.get().getActivityRecord(token);
         // 替换 Activity 对象
         if (r != null) {
             r.activity = activity;
         }
+        // liujia: 移花接木？
         ContextFixer.fixContext(activity);
         ActivityFixer.fixActivity(activity);
         ActivityInfo info = null;
@@ -91,16 +105,21 @@ public final class AppInstrumentation extends InstrumentationDelegate implements
                 activity.setRequestedOrientation(info.screenOrientation);
             }
         }
+        // liujia: 做完后，调用基类的实现
         super.callActivityOnCreate(activity, icicle);
+        // liujia: afterActivityCreate...
         VirtualCore.get().getComponentDelegate().afterActivityCreate(activity);
     }
 
     @Override
     public void callActivityOnResume(Activity activity) {
+        //liujia: 同上，顺序依次是调用beforeActivityXXX 调用VActivityManager 调用基类实现 调用afterActivityXXX
         VirtualCore.get().getComponentDelegate().beforeActivityResume(activity);
         VActivityManager.get().onActivityResumed(activity);
         super.callActivityOnResume(activity);
         VirtualCore.get().getComponentDelegate().afterActivityResume(activity);
+
+        //liujia: 下面的是什么？可能要看看"_VA_|_sender_"和"_VA_|_ui_callback_"这两个东西设置进去的上下文。。。
         Intent intent = activity.getIntent();
         if (intent != null) {
             Bundle bundle = intent.getBundleExtra("_VA_|_sender_");
@@ -138,5 +157,4 @@ public final class AppInstrumentation extends InstrumentationDelegate implements
     public void callApplicationOnCreate(Application app) {
         super.callApplicationOnCreate(app);
     }
-
 }

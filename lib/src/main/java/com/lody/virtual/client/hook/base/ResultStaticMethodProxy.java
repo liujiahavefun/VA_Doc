@@ -6,6 +6,9 @@ import java.lang.reflect.Method;
  * @author Lody
  */
 
+/**
+ * liujia： 对一个方法的hook，替换其返回值为我们给定的result对象
+ */
 public class ResultStaticMethodProxy extends StaticMethodProxy {
 
 	Object mResult;

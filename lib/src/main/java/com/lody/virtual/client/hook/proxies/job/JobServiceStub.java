@@ -34,7 +34,6 @@ public class JobServiceStub extends BinderInvocationProxy {
 		addMethodProxy(new cancel());
 	}
 
-
 	private class schedule extends MethodProxy {
 
 		@Override

@@ -6,6 +6,10 @@ import com.lody.virtual.helper.utils.ArrayUtils;
 
 import java.lang.reflect.Method;
 
+/**
+ * liujia： 对一个方法的hook，就是将方法参数中的最后一个整数，替换为宿主的uid
+ * 参考一些android中的uid和多用户的文章
+ */
 public class ReplaceLastUidMethodProxy extends StaticMethodProxy {
 
     public ReplaceLastUidMethodProxy(String name) {

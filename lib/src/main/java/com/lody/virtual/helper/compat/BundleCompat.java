@@ -12,6 +12,7 @@ public class BundleCompat {
 
 	//返回远程 IBinder 句柄
 	public static IBinder getBinder(Bundle bundle, String key) {
+		//liujia: 应该是从SDK18开始引入了getBinder函数，之前是getIBinder函数，但是是private的，所以要用mirror导出为public
 		if (Build.VERSION.SDK_INT >= 18) {
 			return bundle.getBinder(key);
 		} else {

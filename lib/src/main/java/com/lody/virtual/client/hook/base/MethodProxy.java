@@ -14,6 +14,8 @@ import java.lang.reflect.Method;
 
 /**
  * @author Lody
+ * liujia: 这个对应一个要hook的method
+ * 参考一下MethodInvocationStub的addMethodProxy函数
  */
 // 方法 Hook 基类，使用动态代理
 public abstract class MethodProxy {
@@ -28,6 +30,14 @@ public abstract class MethodProxy {
         }
     }
 
+    /**
+     * liujia: 这个要由基类实现，返回要hook的method名字
+     */
+    public abstract String getMethodName();
+
+    /**
+     * liujia: 下面这一堆函数，需要一个一个看到底做了啥。。。。
+     */
     public static String getHostPkg() {
         return VirtualCore.get().getHostPkg();
     }
@@ -74,8 +84,17 @@ public abstract class MethodProxy {
                 || VirtualCore.get().isOutsidePackageVisible(info.packageName);
     }
 
-    public abstract String getMethodName();
+    public boolean isAppPkg(String pkg) {
+        return VirtualCore.get().isAppInstalled(pkg);
+    }
 
+    protected PackageManager getPM() {
+        return VirtualCore.getPM();
+    }
+
+    /**
+     * liujia: hook后，要重写beforeCall call afterCall，重写其中一个也行，用自己的实现替换系统的
+     */
     public boolean beforeCall(Object who, Method method, Object... args) {
         return true;
     }
@@ -88,6 +107,9 @@ public abstract class MethodProxy {
         return result;
     }
 
+    /**
+     * liujia: hook开关，返回false表明不hook，返回true表明要hook
+     */
     public boolean isEnable() {
         return enable;
     }
@@ -96,20 +118,15 @@ public abstract class MethodProxy {
         this.enable = enable;
     }
 
+    /**
+     * liujia: 获取和设置其日志的配置
+     */
     public LogInvocation.Condition getInvocationLoggingCondition() {
         return mInvocationLoggingCondition;
     }
 
     public void setInvocationloggingCondition(LogInvocation.Condition invocationLoggingCondition) {
         mInvocationLoggingCondition = invocationLoggingCondition;
-    }
-
-    public boolean isAppPkg(String pkg) {
-        return VirtualCore.get().isAppInstalled(pkg);
-    }
-
-    protected PackageManager getPM() {
-        return VirtualCore.getPM();
     }
 
     @Override

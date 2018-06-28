@@ -27,6 +27,10 @@ public class MethodBox {
         }
     }
 
+    /**
+     * liujia:  method.invoke抛出下列异常： IllegalAccessException, IllegalArgumentException, InvocationTargetException
+     * 为啥不处理IllegalArgumentException？
+     */
     public <T> T callSafe() {
         try {
             return (T) method.invoke(who, args);

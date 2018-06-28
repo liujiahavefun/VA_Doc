@@ -21,6 +21,20 @@ import android.view.MotionEvent;
 /**
  * @author Lody
  */
+/**
+ * liujia: 代理了系统的Instrumentation类的实现
+ *
+ * Android instrumentation是Android系统里面的一套控制方法或者”钩子“。这些钩子可以在正常的生命周期（正常是由操作系统控制的)之外控制Android控件的运行，
+ * 其实指的就是Instrumentation类提供的各种流程控制方法，下面展示了部分方法的对应关系
+ * Method		Control by User(Instrumentation)	Control by OS
+ * onCreate		callActivityOnCreate				onCreate
+ * onDestroy	callActivityOnDestroy				onDestroy
+ * onStart		callActivityOnStart					onStart
+ *
+ * 我们也只要关注callActivityOnCreate callActivityOnDestroy  callActivityOnStart callApplicationOnCreate等几个函数就好了
+ * 可以重新实现这些函数，作为更改系统执行过程的一种方式，参考AppInstrumentation
+ *
+ */
 public class InstrumentationDelegate extends Instrumentation {
 
 	protected Instrumentation base;
@@ -336,12 +350,9 @@ public class InstrumentationDelegate extends Instrumentation {
 		return base.getBinderCounts();
 	}
 
-
 	@TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
 	@Override
 	public UiAutomation getUiAutomation() {
 		return base.getUiAutomation();
 	}
-
-
 }

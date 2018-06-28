@@ -22,7 +22,7 @@ import java.lang.annotation.Target;
  * 所以，下面这个注解类名字叫MethodParams，是runtime的，即注解值可以在运行时通过反射获取
  * 并且这个注解类用于类的字段，和枚举常量
  *
- * 下面展示一个用法的例子，通过RefStaticMethod<T>和RefClass.load，我们把系统的某个Stub类(不是通用的，而是某一个Stub)的隐藏方法asInterface，变为我们mirror中对应的Stub类
+ * 下面展示一个用法的例子，通过RefStaticMethod<T>和RefClass.load，我们把系统的某个Stub类(不是通用的，而是某一个Stub)的隐藏方法asInterface，变为我们mirror中对应的Stub类的public方法
  * 此时这个隐藏方法asInterface，变为公开的field也叫asInterface，可以通过asInterface.get(obj)获取真正的方法，然后根据注解类，获取调用参数，最后运行时调用
  * 相当于运行时调用了系统的隐藏方法
    public static class Stub {

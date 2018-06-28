@@ -25,6 +25,9 @@ abstract class StubBinder implements IBinder {
 		this.mBase = base;
 	}
 
+	//liujia: 这个需要子类实现，用于动态代理，实现自定义逻辑
+	public abstract InvocationHandler createHandler(Class<?> interfaceClass, IInterface iInterface);
+
 	@Override
 	public String getInterfaceDescriptor() throws RemoteException {
 		return mBase.getInterfaceDescriptor();
@@ -46,6 +49,7 @@ abstract class StubBinder implements IBinder {
 	 *
 	 * Search the AidlClass.Stub.asInterface(IBinder) method by the StackTrace.
 	 *
+	 * liujia: 搜索栈里的类似 AidlClass.Stub.asInterface(IBinder)这种函数，然后对动态代理
 	 */
 	@Override
 	public IInterface queryLocalInterface(String descriptor) {
@@ -57,19 +61,21 @@ abstract class StubBinder implements IBinder {
 			Class<?> aidlType = null;
 			IInterface targetInterface = null;
 
+			//liujia: 这个stackTrace正常循环的话，是从栈顶到栈底还是从栈底到栈顶啊？
 			for (StackTraceElement element : stackTrace) {
 				if (element.isNativeMethod()) {
 					continue;
 				}
 				try {
-                    Method method = mClassLoader.loadClass(element.getClassName())
-                            .getDeclaredMethod(element.getMethodName(), IBinder.class);
+                    Method method = mClassLoader.loadClass(element.getClassName()).getDeclaredMethod(element.getMethodName(), IBinder.class);
                     if ((method.getModifiers() & Modifier.STATIC) != 0) {
                         method.setAccessible(true);
                         Class<?> returnType = method.getReturnType();
+                        //liujia: returnType是interface且是IInterface的子类
                         if (returnType.isInterface() && IInterface.class.isAssignableFrom(returnType)) {
                             aidlType = returnType;
-                            targetInterface = (IInterface) method.invoke(null, mBase);
+                            targetInterface = (IInterface) method.invoke(null, mBase); //liujia: asInterface(IBinder)是静态函数，所以第一个参数是null
+							//liujia: 这里如果找到也不退出循环，看样子是要找到最底层的满足条件的
                         }
                     }
                 } catch (Exception e) {
@@ -79,15 +85,12 @@ abstract class StubBinder implements IBinder {
 			if (aidlType == null || targetInterface == null) {
                 return null;
             }
+            //liujia: 动态代理，注意返回的是动态代理后的interface
 			InvocationHandler handler = createHandler(aidlType, targetInterface);
 			mInterface = (IInterface) Proxy.newProxyInstance(mClassLoader, new Class[]{aidlType}, handler);
 		}
 		return mInterface;
-
 	}
-
-	public abstract InvocationHandler createHandler(Class<?> interfaceClass, IInterface iInterface);
-
 
 	@Override
 	public void dump(FileDescriptor fd, String[] args) throws RemoteException {

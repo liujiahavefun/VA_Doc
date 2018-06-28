@@ -8,6 +8,9 @@ import com.lody.virtual.client.hook.utils.MethodParameterUtils;
  * @author Lody
  */
 
+/**
+ * liujia： 对一个方法的hook，就是调用前将方法参数中的第一个String，替换为宿主的包名
+ */
 public class ReplaceCallingPkgMethodProxy extends StaticMethodProxy {
 
 	public ReplaceCallingPkgMethodProxy(String name) {

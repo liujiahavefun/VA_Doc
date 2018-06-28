@@ -15,6 +15,10 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
+ * liujia: 这个MethodInvocationStub 对某个interface实现了动态代理
+ */
+
+/**
  * @author Lody
  *         <p>
  *         HookHandler uses Java's {@link Proxy} to create a wrapper for existing services.
@@ -29,17 +33,19 @@ public class MethodInvocationStub<T> {
 
     private static final String TAG = MethodInvocationStub.class.getSimpleName();
 
-    private Map<String, MethodProxy> mInternalMethodProxies = new HashMap<>();
-    private T mBaseInterface;
-    private T mProxyInterface;
-    private String mIdentityName;
+    private T mBaseInterface;       //liujia: 原来的接口
+    private T mProxyInterface;      //liujia: 动态代理的接口，即我们的实现
+    private String mIdentityName;   //liujia: 标识符...
+    private Map<String, MethodProxy> mInternalMethodProxies = new HashMap<>();  //liujia: 这个接口的哪些方法要hook...
     private LogInvocation.Condition mInvocationLoggingCondition = LogInvocation.Condition.NEVER;
-
 
     public Map<String, MethodProxy> getAllHooks() {
         return mInternalMethodProxies;
     }
 
+    public MethodInvocationStub(T baseInterface) {
+        this(baseInterface, (Class[]) null);
+    }
 
     public MethodInvocationStub(T baseInterface, Class<?>... proxyInterfaces) {
         this.mBaseInterface = baseInterface;
@@ -47,6 +53,7 @@ public class MethodInvocationStub<T> {
             if (proxyInterfaces == null) {
                 proxyInterfaces = MethodParameterUtils.getAllInterface(baseInterface.getClass());
             }
+            //liujia: java的动态代理。。。详细请参考HookInvocationHandler的实现
             mProxyInterface = (T) Proxy.newProxyInstance(baseInterface.getClass().getClassLoader(), proxyInterfaces, new HookInvocationHandler());
         } else {
             VLog.d(TAG, "Unable to build HookDelegate: %s.", getIdentityName());
@@ -72,10 +79,6 @@ public class MethodInvocationStub<T> {
         return getClass().getSimpleName();
     }
 
-    public MethodInvocationStub(T baseInterface) {
-        this(baseInterface, (Class[]) null);
-    }
-
     /**
      * Copy all proxies from the input HookDelegate.
      *
@@ -93,8 +96,7 @@ public class MethodInvocationStub<T> {
     public MethodProxy addMethodProxy(MethodProxy methodProxy) {
         if (methodProxy != null && !TextUtils.isEmpty(methodProxy.getMethodName())) {
             if (mInternalMethodProxies.containsKey(methodProxy.getMethodName())) {
-                VLog.w(TAG, "The Hook(%s, %s) you added has been in existence.", methodProxy.getMethodName(),
-                        methodProxy.getClass().getName());
+                VLog.w(TAG, "The Hook(%s, %s) you added has been in existence.", methodProxy.getMethodName(), methodProxy.getClass().getName());
                 return methodProxy;
             }
             mInternalMethodProxies.put(methodProxy.getMethodName(), methodProxy);
@@ -176,12 +178,12 @@ public class MethodInvocationStub<T> {
             Throwable exception = null;
             if (mightLog) {
                 // Arguments to string is done before the method is called because the method might actually change it
-                argStr = Arrays.toString(args);
-                argStr = argStr.substring(1, argStr.length()-1);
+                argStr = Arrays.toString(args); //liujia: Arrays.toString(object[])将一堆object变为 "[xxx,xxx,xxx]" 的字符串
+                argStr = argStr.substring(1, argStr.length()-1); //liujia: 去掉首尾，但这里似乎有个bug，如果上面返回的argStr是"null"，则不是有问题么？
             }
 
-
             try {
+                //liujia: 核心实现！hook需要hook的方法，注意我们hook的实现在MethodProxy里面
                 if (useProxy && methodProxy.beforeCall(mBaseInterface, method, args)) {
                     res = methodProxy.call(mBaseInterface, method, args);
                     res = methodProxy.afterCall(mBaseInterface, method, args, res);
@@ -191,6 +193,8 @@ public class MethodInvocationStub<T> {
                 return res;
 
             } catch (Throwable t) {
+                //liujia: InvocationTargetException异常由Method.invoke(obj, args...)方法抛出。当被调用的方法的内部抛出了异常而没有被捕获时，将由此异常接收！！！
+                //所以此时我们要"正常的"向外抛出真正的exception，即 ((InvocationTargetException) exception).getTargetException()
                 exception = t;
                 if (exception instanceof InvocationTargetException && ((InvocationTargetException) exception).getTargetException() != null) {
                     exception = ((InvocationTargetException) exception).getTargetException();
@@ -201,6 +205,7 @@ public class MethodInvocationStub<T> {
                 if (mightLog) {
                     int logPriority = mInvocationLoggingCondition.getLogLevel(useProxy, exception != null);
                     if (methodProxy != null) {
+                        //liujia: 类和方法都有自己的log级别，这里选最高的那个
                         logPriority = Math.max(logPriority, methodProxy.getInvocationLoggingCondition().getLogLevel(useProxy, exception != null));
                     }
                     if (logPriority >= 0) {
@@ -229,5 +234,4 @@ public class MethodInvocationStub<T> {
         sb.append("*********************");
         VLog.e(TAG, sb.toString());
     }
-
 }

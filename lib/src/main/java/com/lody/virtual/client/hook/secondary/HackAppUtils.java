@@ -8,7 +8,6 @@ import com.lody.virtual.helper.utils.ReflectException;
  */
 
 public class HackAppUtils {
-
     /**
      * Enable the Log output of QQ.
      *

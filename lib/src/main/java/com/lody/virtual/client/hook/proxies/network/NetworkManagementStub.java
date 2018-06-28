@@ -9,8 +9,7 @@ import com.lody.virtual.client.hook.base.ReplaceUidMethodProxy;
 import mirror.android.os.INetworkManagementService;
 
 @TargetApi(Build.VERSION_CODES.M)
-public class
-NetworkManagementStub extends BinderInvocationProxy {
+public class NetworkManagementStub extends BinderInvocationProxy {
 
 	public NetworkManagementStub() {
 		super(INetworkManagementService.Stub.asInterface, "network_management");

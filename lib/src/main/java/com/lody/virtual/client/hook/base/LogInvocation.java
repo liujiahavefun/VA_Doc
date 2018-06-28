@@ -11,6 +11,10 @@ import java.lang.annotation.RetentionPolicy;
  *
  * Obviously, this is only useful for debugging.
  */
+
+/**
+ * liujia: annotation，用于标记hook的method被调用时 beforeCall call afterCall时日志如何显示
+ */
 @Retention(RetentionPolicy.RUNTIME)
 public @interface LogInvocation {
     public Condition value() default Condition.ALWAYS;

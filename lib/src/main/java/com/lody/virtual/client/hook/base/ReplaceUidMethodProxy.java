@@ -2,6 +2,10 @@ package com.lody.virtual.client.hook.base;
 
 import java.lang.reflect.Method;
 
+/**
+ * liujia： 对一个方法的hook，替换uid啥的....
+ * 需要结合具体使用来看
+ */
 public class ReplaceUidMethodProxy extends StaticMethodProxy {
 
         private final int index;

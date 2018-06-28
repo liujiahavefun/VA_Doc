@@ -19,10 +19,10 @@ import mirror.com.android.internal.view.inputmethod.InputMethodManager;
 public class InputMethodManagerStub extends BinderInvocationProxy {
 
 	public InputMethodManagerStub() {
-		super(
-				InputMethodManager.mService.get(
-						VirtualCore.get().getContext().getSystemService(Context.INPUT_METHOD_SERVICE)),
-				Context.INPUT_METHOD_SERVICE);
+		super(InputMethodManager.mService.get(
+				VirtualCore.get().getContext().getSystemService(Context.INPUT_METHOD_SERVICE)),
+				Context.INPUT_METHOD_SERVICE
+		);
 	}
 
 	@Override
@@ -36,8 +36,7 @@ public class InputMethodManagerStub extends BinderInvocationProxy {
 	@Override
 	public boolean isEnvBad() {
 		Object inputMethodManager = getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
-		return InputMethodManager
-				.mService.get(inputMethodManager) != getInvocationStub().getBaseInterface();
+		return InputMethodManager.mService.get(inputMethodManager) != getInvocationStub().getBaseInterface();
 	}
 
 }

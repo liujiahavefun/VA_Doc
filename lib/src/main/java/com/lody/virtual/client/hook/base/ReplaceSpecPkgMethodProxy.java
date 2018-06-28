@@ -6,6 +6,9 @@ import java.lang.reflect.Method;
  * @author Lody
  */
 
+/**
+ * liujia： 对一个方法的hook，就是将方法参数中第index(index若为负数，则为从后向前数)个参数，如果其为String，替换为宿主包名
+ */
 public class ReplaceSpecPkgMethodProxy extends StaticMethodProxy {
 
 	private int index;

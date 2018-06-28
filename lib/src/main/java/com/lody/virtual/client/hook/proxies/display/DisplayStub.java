@@ -16,8 +16,7 @@ import mirror.android.hardware.display.DisplayManagerGlobal;
 @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR1)
 public class DisplayStub extends MethodInvocationProxy<MethodInvocationStub<IInterface>> {
 	public DisplayStub() {
-		super(new MethodInvocationStub<IInterface>(
-				DisplayManagerGlobal.mDm.get(DisplayManagerGlobal.getInstance.call())));
+		super(new MethodInvocationStub<IInterface>(DisplayManagerGlobal.mDm.get(DisplayManagerGlobal.getInstance.call())));
 	}
 
 	@Override
