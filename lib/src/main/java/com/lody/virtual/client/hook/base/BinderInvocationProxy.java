@@ -32,6 +32,14 @@ import mirror.android.os.ServiceManager;
  	而是存在一个全局的单例可以获取这个IInterface对象，这样我们直接拿到这个IInterface实例然后在这个实例上动态代理为我们自己的实现就好了
  	这样，其它代码也是通过去拿这个全局对象，调用的就是我们代理后的代码了
  	这种服务通常不会调用ServiceManager去获取，所以不用通过BinderInvocationProxy去搞了
+ *
+ * 这里说一下hook的步骤
+ * 1）首先是继承BinderInvocationProxy或者MethodInvocationProxy<MethodInvocationStub<IInterface>>
+ * 2）然后在Inject()里面，对要代理的对象(要么是IBinder，要么是个全局的单例，都是通过mirror拿到)，设置动态代理
+ * 动态代理实际是在MethodInvocationStub中，注意这里对整个接口做了代理
+ * 3）然后在onBindMethods()中，添加对已经代理了的接口(对象)的哪个方法的hook代码，即如果要更改原有逻辑，在这里添加hook代码
+ * 注意onBindMethods()实在MethodInvocationProxy的构造函数中调用的。
+ *
  */
 public abstract class BinderInvocationProxy extends MethodInvocationProxy<BinderInvocationStub> {
 

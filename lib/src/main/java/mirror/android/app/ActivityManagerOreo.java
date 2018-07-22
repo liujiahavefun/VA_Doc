@@ -11,10 +11,7 @@ import mirror.RefStaticObject;
  */
 
 public class ActivityManagerOreo {
-
     public static Class<?> TYPE = RefClass.load(ActivityManagerOreo.class, "android.app.ActivityManager");
-
     public static RefStaticMethod<IInterface> getService;
     public static RefStaticObject<Object> IActivityManagerSingleton;
-
 }

@@ -14,6 +14,10 @@ import java.io.Serializable;
  * @author Lody
  *
  */
+
+/**
+ * liujia: 封装了通过ContentProvider方式获取数据的方法....
+ */
 public class ProviderCall {
 
 	public static Bundle call(String authority, String methodName, String arg, Bundle bundle) {
@@ -50,9 +54,10 @@ public class ProviderCall {
 			return this;
 		}
 
+		// liujia: 参数类型支持：Boolean Integer String Serializable Bundle Parcelable
 		public Builder addArg(String key, Object value) {
 			if (value != null) {
-				 if (value instanceof Boolean) {
+				if (value instanceof Boolean) {
 					bundle.putBoolean(key, (Boolean) value);
 				} else if (value instanceof Integer) {
 					bundle.putInt(key, (Integer) value);
@@ -74,7 +79,5 @@ public class ProviderCall {
 		public Bundle call() {
 			return ProviderCall.call(auth, context, method, arg, bundle);
 		}
-
 	}
-
 }

@@ -7,7 +7,6 @@ import android.os.Build;
  */
 
 public class BuildCompat {
-
     public static int getPreviewSDKInt() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             try {
@@ -20,9 +19,7 @@ public class BuildCompat {
     }
 
     public static boolean isOreo() {
-
-        return (Build.VERSION.SDK_INT == 25 && getPreviewSDKInt() > 0)
-                || Build.VERSION.SDK_INT > 25;
+        //liujia: 是否android 8.0及以上...
+        return (Build.VERSION.SDK_INT == 25 && getPreviewSDKInt() > 0) || Build.VERSION.SDK_INT > 25;
     }
-
 }

@@ -45,8 +45,12 @@ public class VirtualRuntime {
         }
         sInitialPackageName = appInfo.packageName;
         sProcessName = processName;
+
         // 设置 process 的名字
         mirror.android.os.Process.setArgV0.call(processName);
+
+        //liujia: android.ddm.DdmHandleAppName包中的setAppName和getAppName是设置和获取当前进程名
+        //两个问题：1）上面的setArgV0和这里的setAppName有何不同，而是setAppName在JELLY_BEAN_MR1及以上，第二个参数应该是userId，但这里为何传0
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
             DdmHandleAppNameJBMR1.setAppName.call(processName, 0);
         } else {
@@ -56,13 +60,14 @@ public class VirtualRuntime {
 
     public static <T> T crash(RemoteException e) throws RuntimeException {
         e.printStackTrace();
+
+        //liujia: 如果是appClient进程，崩溃后则退出。。。 TODO: 需要弹框么？
         if (VirtualCore.get().isVAppProcess()) {
             Process.killProcess(Process.myPid());
             System.exit(0);
         }
         throw new DeadServerException(e);
     }
-
 
     public static boolean isArt() {
         return System.getProperty("java.vm.version").startsWith("2");

@@ -64,6 +64,12 @@ import static android.os.Build.VERSION_CODES.N;
  * @author Lody
  *
  */
+/**
+ * liujia: 集中的管理哪些需要hook哪些系统模块(系统服务)
+ * 主要关注injectInternal() 和 injectAll() 这两个函数
+ * injectInternal()根据当前进程(主进程，server进程，appClient进程，appClient启动的其它进程？)来hook哪些系统服务
+ * injectAll()则开始进行hook，但是注意的是Instrumentation的hook，哪个进程都要hook这个。。。。
+ */
 public final class InvocationStubManager {
 
     private static InvocationStubManager sInstance = new InvocationStubManager();
@@ -83,6 +89,7 @@ public final class InvocationStubManager {
 			injector.inject();
 		}
 		// XXX: Lazy inject the Instrumentation,
+		// liujia: Instrumentation应该是哪个process都要hook喽，但为何要lazy inject？且什么时候真正hook?
 		addInjector(AppInstrumentation.getDefault());
 	}
 
@@ -139,19 +146,25 @@ public final class InvocationStubManager {
 			addInjector(new ContentServiceStub());
 			addInjector(new ConnectivityStub());
 
+			//liujia: >= 4.3, Jelly Bean
 			if (Build.VERSION.SDK_INT >= JELLY_BEAN_MR2) {
 				addInjector(new VibratorStub());
 				addInjector(new WifiManagerStub());
 				addInjector(new BluetoothStub());
 				addInjector(new ContextHubServiceStub());
 			}
+
+			//liujia: >= 4.2, Jelly Bean
 			if (Build.VERSION.SDK_INT >= JELLY_BEAN_MR1) {
 				addInjector(new UserManagerStub());
 			}
 
+			//liujia: >= 4.2, Jelly Bean
 			if (Build.VERSION.SDK_INT >= JELLY_BEAN_MR1) {
 				addInjector(new DisplayStub());
 			}
+
+			//liujia: >= 5.0, Lollipop
 			if (Build.VERSION.SDK_INT >= LOLLIPOP) {
 				addInjector(new PersistentDataBlockServiceStub());
 				addInjector(new InputMethodManagerStub());
@@ -160,17 +173,25 @@ public final class InvocationStubManager {
 				addInjector(new JobServiceStub());
 				addInjector(new RestrictionStub());
 			}
+
+			//liujia: >= 4.4, KitKat
 			if (Build.VERSION.SDK_INT >= KITKAT) {
 				addInjector(new AlarmManagerStub());
 				addInjector(new AppOpsManagerStub());
 				addInjector(new MediaRouterServiceStub());
 			}
+
+			//liujia: >= 5.1, Lollipop
 			if (Build.VERSION.SDK_INT >= LOLLIPOP_MR1) {
 				addInjector(new GraphicsStatsStub());
 			}
+
+			//liujia: >= 6.0, Marshmallow
 			if (Build.VERSION.SDK_INT >= M) {
 				addInjector(new NetworkManagementStub());
 			}
+
+			//liujia: >= 7.0, Nougat
 			if (Build.VERSION.SDK_INT >= N) {
                 addInjector(new WifiScannerStub());
                 addInjector(new ShortcutServiceStub());

@@ -36,15 +36,17 @@ public class GmsSupport {
             "com.google.android.syncadapters.calendar"
     );
 
+    // liujia: com.google.android.gms是GMS框架，com.android.vending是Google Play商店
     public static boolean isGmsFamilyPackage(String packageName) {
-        return packageName.equals("com.android.vending")
-                || packageName.equals("com.google.android.gms");
+        return packageName.equals("com.android.vending") || packageName.equals("com.google.android.gms");
     }
 
+    // liujia: virtualapp内部安装了google框架
     public static boolean isGoogleFrameworkInstalled() {
         return VirtualCore.get().isAppInstalled("com.google.android.gms");
     }
 
+    // liujia: virtualapp外部，即外面的os中是否安装了google框架
     public static boolean isOutsideGoogleFrameworkExist() {
         return VirtualCore.get().isOutsideInstalled("com.google.android.gms");
     }
@@ -61,9 +63,12 @@ public class GmsSupport {
             } catch (PackageManager.NameNotFoundException e) {
                 // Ignore
             }
+
+            // liujia: NOTE!!! 这里判断如果外部没有安装就不安装了 TODO: 可以去掉此判断，这样virtualapp可安装任意app
             if (info == null || info.sourceDir == null) {
                 continue;
             }
+
             if (userId == 0) {
                 core.installPackage(info.sourceDir, InstallStrategy.DEPEND_SYSTEM_IF_EXIST);
             } else {

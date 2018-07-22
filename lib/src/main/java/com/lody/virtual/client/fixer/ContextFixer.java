@@ -30,12 +30,17 @@ public class ContextFixer {
      * @param context Context
      */
     public static void fixContext(Context context) {
+        //liujia: why do this? it raise exception when context is null?
         try {
             context.getPackageName();
         } catch (Throwable e) {
             return;
         }
+
+        //liujia: try inject IGraphicsStats
         InvocationStubManager.getInstance().checkEnv(GraphicsStatsStub.class);
+
+        //liujia: what's this? try to get the most "base" context?
         int deep = 0;
         while (context instanceof ContextWrapper) {
             context = ((ContextWrapper) context).getBaseContext();
@@ -44,15 +49,19 @@ public class ContextFixer {
                 return;
             }
         }
+
+        //liujia: 为啥用设置context(ContextImpl类型对象)的mPackageManager对象为null ?
         ContextImpl.mPackageManager.set(context, null);
         try {
             context.getPackageManager();
         } catch (Throwable e) {
             e.printStackTrace();
         }
+
         if (!VirtualCore.get().isVAppProcess()) {
             return;
         }
+
         DropBoxManager dm = (DropBoxManager) context.getSystemService(Context.DROPBOX_SERVICE);
         BinderInvocationStub boxBinder = InvocationStubManager.getInstance().getInvocationStub(DropBoxManagerStub.class);
         if (boxBinder != null) {
@@ -71,5 +80,4 @@ public class ContextFixer {
             ContentResolverJBMR2.mPackageName.set(context.getContentResolver(), hostPkg);
         }
     }
-
 }

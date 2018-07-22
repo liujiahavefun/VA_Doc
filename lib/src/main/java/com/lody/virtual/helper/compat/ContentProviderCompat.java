@@ -12,6 +12,10 @@ import android.os.SystemClock;
 /**
  * @author Lody
  */
+
+/**
+ * liujia: 封装了从ContentProvider获取数据的过程
+ */
 public class ContentProviderCompat {
 
     public static Bundle call(Context context, Uri uri, String method, String arg, Bundle extras) {
@@ -30,7 +34,6 @@ public class ContentProviderCompat {
         return res;
     }
 
-
     private static ContentProviderClient acquireContentProviderClient(Context context, Uri uri) {
         if (VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
             return context.getContentResolver().acquireUnstableContentProviderClient(uri);
@@ -38,6 +41,7 @@ public class ContentProviderCompat {
         return context.getContentResolver().acquireContentProviderClient(uri);
     }
 
+    // liujia: 所谓"crazy"，不过是重试5次....
     public static ContentProviderClient crazyAcquireContentProvider(Context context, Uri uri) {
         ContentProviderClient client = acquireContentProviderClient(context, uri);
         if (client == null) {

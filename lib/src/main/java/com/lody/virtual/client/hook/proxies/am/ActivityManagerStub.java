@@ -39,6 +39,9 @@ import mirror.android.util.Singleton;
  */
 
 // Hook 替换 gDefault
+/**
+ * liujia: hook点是ActivityManagerNativer.getDefault这个静态函数，因为hook的不是binder而是单例，所以这里继承MethodInvocationProxy<MethodInvocationStub<IInterface>>
+ */
 @LogInvocation(LogInvocation.Condition.ALWAYS)
 @Inject(MethodProxies.class)
 public class ActivityManagerStub extends MethodInvocationProxy<MethodInvocationStub<IInterface>> {
@@ -49,6 +52,7 @@ public class ActivityManagerStub extends MethodInvocationProxy<MethodInvocationS
 
     @Override
     public void inject() throws Throwable {
+        //liujia: 这里
         if (BuildCompat.isOreo()) {
             //Android Oreo(8.X)
             Object singleton = ActivityManagerOreo.IActivityManagerSingleton.get();
@@ -61,25 +65,41 @@ public class ActivityManagerStub extends MethodInvocationProxy<MethodInvocationS
                 Singleton.mInstance.set(gDefault, getInvocationStub().getProxyInterface());
             }
         }
+
+        //liujia: baseInterface都是IActivityManager，即就是一个IBinder，只不过上面根据版本不同，hook点不一样
+        //然后对其再用BinderInvocationStub做了另外一个动态代理，注意将所有的hook的函数实现都拷贝过去(copyMethodProxies)
+        //然后用这个替换了ServiceManager.sCache里面的缓存对象
         BinderInvocationStub hookAMBinder = new BinderInvocationStub(getInvocationStub().getBaseInterface());
         hookAMBinder.copyMethodProxies(getInvocationStub());
         ServiceManager.sCache.get().put(Context.ACTIVITY_SERVICE, hookAMBinder);
     }
 
+    //liujia: 这里只是一部分，还要参考/src/main/java/com/lody/virtual/client/hook/proxies/am/MethodProxies.java里面其它的
+    //尤其是hook startActivity的实现
     @Override
     protected void onBindMethods() {
         super.onBindMethods();
+
+        //liujia: 注意只在appClient进程里hook....
         if (VirtualCore.get().isVAppProcess()) {
+            //liujia: 这个函数干毛？为毛不能调用？https://blog.csdn.net/aikongmeng/article/details/37934741
             addMethodProxy(new StaticMethodProxy("navigateUpTo") {
                 @Override
                 public Object call(Object who, Method method, Object... args) throws Throwable {
                     throw new RuntimeException("Call navigateUpTo!!!!");
                 }
             });
+
+            //liujia: checkPermissionWithToken(String permission, int pid, int uid, IBinder callerToken)
+            //用ReplaceLastUidMethodProxy将最后一个int替换为我们的真实uid
             addMethodProxy(new ReplaceLastUidMethodProxy("checkPermissionWithToken"));
+
             addMethodProxy(new isUserRunning());
+
             addMethodProxy(new ResultStaticMethodProxy("updateConfiguration", 0));
+
             addMethodProxy(new ReplaceCallingPkgMethodProxy("setAppLockedVerifying"));
+
             addMethodProxy(new StaticMethodProxy("checkUriPermission") {
                 @Override
                 public Object afterCall(Object who, Method method, Object[] args, Object result) throws Throwable {

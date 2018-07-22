@@ -29,6 +29,13 @@ import com.lody.virtual.server.vs.VirtualStorageService;
 /**
  * @author Lody
  */
+
+/**
+ * liujia: ServiceFetcher用于向外部保留VAService中的所有服务的IBinder句柄，其本事也是一个基于IBinder的服务
+ * 这个BinderProvider通过ContentProvider的方式，对外提供这个ServiceFetcher服务的IBinder句柄，这样外部可以通过Provider
+ * 的方式获取ServiceFetcher的IBinder句柄(即获取到ServiceFetcher服务对象)，进而获取到其它各自VAService服务的IBinder对象(获取其它服务对象)
+ * 参考getServiceFetcher()函数
+ */
 public final class BinderProvider extends ContentProvider {
 
     private final ServiceFetcher mServiceFetcher = new ServiceFetcher();
@@ -41,24 +48,31 @@ public final class BinderProvider extends ContentProvider {
         if (!VirtualCore.get().isStartup()) {
             return true;
         }
+
         VPackageManagerService.systemReady();
         addService(ServiceManagerNative.PACKAGE, VPackageManagerService.get());
+
         VActivityManagerService.systemReady(context);
         addService(ServiceManagerNative.ACTIVITY, VActivityManagerService.get());
         addService(ServiceManagerNative.USER, VUserManagerService.get());
+
         VAppManagerService.systemReady();
         addService(ServiceManagerNative.APP, VAppManagerService.get());
+
         BroadcastSystem.attach(VActivityManagerService.get(), VAppManagerService.get());
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             addService(ServiceManagerNative.JOB, VJobSchedulerService.get());
         }
+
         VNotificationManagerService.systemReady(context);
         addService(ServiceManagerNative.NOTIFICATION, VNotificationManagerService.get());
         VAppManagerService.get().scanApps();
+
         VAccountManagerService.systemReady();
         addService(ServiceManagerNative.ACCOUNT, VAccountManagerService.get());
         addService(ServiceManagerNative.VS, VirtualStorageService.get());
         addService(ServiceManagerNative.DEVICE, VDeviceManagerService.get());
+
         return true;
     }
 

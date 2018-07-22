@@ -174,21 +174,27 @@ public final class VirtualCore {
             if (Looper.myLooper() != Looper.getMainLooper()) {
                 throw new IllegalStateException("VirtualCore.startup() must called in main thread.");
             }
+
             VASettings.STUB_CP_AUTHORITY = context.getPackageName() + "." + VASettings.STUB_DEF_AUTHORITY;
             ServiceManagerNative.SERVICE_CP_AUTH = context.getPackageName() + "." + ServiceManagerNative.SERVICE_DEF_AUTH;
             this.context = context;
-            // 获取 ActivityThread 实例
+
+            // 获取 ActivityThread 实例    liujia: 这个应该是当前线程吧？我觉得是的。。。。
             mainThread = ActivityThread.currentActivityThread.call();
             unHookPackageManager = context.getPackageManager();
             hostPkgInfo = unHookPackageManager.getPackageInfo(context.getPackageName(), PackageManager.GET_PROVIDERS);
             detectProcessType();
+
             // hook 系统类
             InvocationStubManager invocationStubManager = InvocationStubManager.getInstance();
             invocationStubManager.init();
             invocationStubManager.injectAll();
+
             // 修复权限管理
             ContextFixer.fixContext(context);
             isStartUp = true;
+
+            //liujia: StubContentProvider等待在此ConditionVariable上
             if (initLock != null) {
                 initLock.open();
                 initLock = null;
@@ -236,20 +242,21 @@ public final class VirtualCore {
     }
 
     private void detectProcessType() {
-        // Host package name
+        // Host package name   liujia: 即virtualApp的自己包名
         hostPkgName = context.getApplicationInfo().packageName;
         // Main process name
         mainProcessName = context.getApplicationInfo().processName;
-        // Current process name
+        // Current process name  liujia: mainThread是当前线程，所以这里获取的是当前进程名
         processName = ActivityThread.getProcessName.call(mainThread);
+
         if (processName.equals(mainProcessName)) {
-            processType = ProcessType.Main;
+            processType = ProcessType.Main;  //liujia: virtualApp的主进程
         } else if (processName.endsWith(Constants.SERVER_PROCESS_NAME)) {
-            processType = ProcessType.Server;
+            processType = ProcessType.Server; //liujia: 运行server的进程
         } else if (VActivityManager.get().isAppProcess(processName)) {
-            processType = ProcessType.VAppClient;
+            processType = ProcessType.VAppClient; //liujia: 运行其它apk的进程，即对于其它apk来说使其主进程
         } else {
-            processType = ProcessType.CHILD;
+            processType = ProcessType.CHILD;  //liujia: 应该是其它apk运行起来后，起的其它进程
         }
         if (isVAppProcess()) {
             systemPid = VActivityManager.get().getSystemPid();
@@ -736,6 +743,7 @@ public final class VirtualCore {
     }
 
     // 是否在系统中安装
+    // liujia: 不同于isAppInstalled()，isOutsideInstalled()只是否在外部安装，而isAppInstalled()似乎只指的是是否在virtualapp内部安装了某个app
     public boolean isOutsideInstalled(String packageName) {
         try {
             return unHookPackageManager.getApplicationInfo(packageName, 0) != null;

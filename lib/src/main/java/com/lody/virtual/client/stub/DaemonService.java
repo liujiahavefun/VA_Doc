@@ -11,6 +11,11 @@ import android.os.IBinder;
  * @author Lody
  *
  */
+
+/**
+ * liujia: 为了保活VAService进程。。。
+ * 现在后台服务很容易被杀(Android8.0以后后台服务职能在后台存在5s)，而前台则不受影响
+ */
 public class DaemonService extends Service {
 
     private static final int NOTIFY_ID = 1001;
@@ -35,11 +40,11 @@ public class DaemonService extends Service {
 		super.onCreate();
         startService(new Intent(this, InnerService.class));
         startForeground(NOTIFY_ID, new Notification());
-
 	}
 
 	@Override
 	public int onStartCommand(Intent intent, int flags, int startId) {
+		//liujia: START_STICKY是service被kill掉后自动重新创建
 		return START_STICKY;
 	}
 

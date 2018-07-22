@@ -47,6 +47,8 @@ public class BinderInvocationStub extends MethodInvocationStub<IInterface> imple
         super(baseInterface);
         //liujia: getBaseInterface()实现在基类MethodInvocationStub()中，其实就是返回了上面的baseInterface
         mBaseBinder = getBaseInterface() != null ? getBaseInterface().asBinder() : null;
+
+        //liujia:默认hook了asBinder(）的实现，即根据接口返回IBinder对象，返回我们这个BinderInvocationStub对象
         addMethodProxy(new AsBinder());
     }
 

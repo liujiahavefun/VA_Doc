@@ -14,6 +14,10 @@ import com.lody.virtual.server.interfaces.IServiceFetcher;
 /**
  * @author Lody
  */
+
+/**
+ * liujia: 封装了获取远程服务的过程，参考ServiceFetcher服务
+ */
 public class ServiceManagerNative {
 
     public static final String PACKAGE = "package";
@@ -33,7 +37,10 @@ public class ServiceManagerNative {
      // 通过 ContentProvider 传递一个
     private static IServiceFetcher sFetcher;
 
+    // liujia: 通过provider的方式获取ServiceFetcher服务
     private static IServiceFetcher getServiceFetcher() {
+        // liujia: lazy initialize! 注意参考linkBinderDied()设置的死亡代理为何没有重连
+        // 这样，当去获取服务的时候，如果没初始化或者已经死亡了，则重连并获取服务对象
         if (sFetcher == null || !sFetcher.asBinder().isBinderAlive()) {
             synchronized (ServiceManagerNative.class) {
                 Context context = VirtualCore.get().getContext();
@@ -56,6 +63,8 @@ public class ServiceManagerNative {
         sFetcher = null;
     }
 
+    // liujia: 为此IBinder对象设置"死亡代理"，当远程服务挂了(通信失败)，系统调用此死亡代理
+    // 通常的处理是重启服务，但这里仅仅是unlinToDeath(取消死亡代理)
     private static void linkBinderDied(final IBinder binder) {
         IBinder.DeathRecipient deathRecipient = new IBinder.DeathRecipient() {
             @Override
@@ -70,13 +79,14 @@ public class ServiceManagerNative {
         }
     }
 
-    // 返回服务的 IBinder 句柄
+    // liujia: 通过ServiceFetcher返回服务的IBinder句柄，即获取远程服务
     public static IBinder getService(String name) {
-        // 如果是本地服务，直接本地返回
+        // 如果是本地服务，直接本地返回   liujia: 如果当前是服务进程，则直接冲ServiceCache中直接获取就好了
         if (VirtualCore.get().isServerProcess()) {
             return ServiceCache.getService(name);
         }
-        // 通过 ServiceFetcher 的句柄找到远程 Service 的句柄
+
+        // 通过 ServiceFetcher 的句柄找到远程 Service 的句柄   //liujia: 通过ServiceFetcher获取远程服务
         IServiceFetcher fetcher = getServiceFetcher();
         if (fetcher != null) {
             try {
@@ -111,5 +121,4 @@ public class ServiceManagerNative {
             }
         }
     }
-
 }

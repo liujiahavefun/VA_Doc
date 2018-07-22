@@ -26,8 +26,15 @@ import mirror.android.content.IContentProvider;
  * @author Lody
  */
 
+/**
+ * liujia: 对provider做动态代理，代理的流程和入口都在ProviderHook
+ * 但具体hook的代码去看DownloadProviderHook和SettingsProviderHook里面
+ * 具体看VClientImpl的代码.....
+ */
 public class ProviderHook implements InvocationHandler {
 
+    //liujia:  SettingsProviderHook和DownloadProviderHook，都是ProviderHook的子类
+    //liujia: 其实确切的说是ExternalProviderHook的子类，而ExternalProviderHook是ProviderHook的子类
     private static final Map<String, HookFetcher> PROVIDER_MAP = new HashMap<>();
 
     static {
@@ -67,6 +74,8 @@ public class ProviderHook implements InvocationHandler {
         return fetcher;
     }
 
+    //liujia: provider是要代理的接口，hook是我们自己实现的接口，用来代替系统的实现
+    //这两个函数，上面的主要做真正的动态代理，下面的实现外部调用
     private static IInterface createProxy(IInterface provider, ProviderHook hook) {
         if (provider == null || hook == null) {
             return null;
@@ -96,7 +105,6 @@ public class ProviderHook implements InvocationHandler {
     }
 
     public Uri insert(MethodBox methodBox, Uri url, ContentValues initialValues) throws InvocationTargetException {
-
         return (Uri) methodBox.call();
     }
 
